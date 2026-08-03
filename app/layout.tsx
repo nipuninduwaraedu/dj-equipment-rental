@@ -1,15 +1,9 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-
-const inter = Inter({ subsets: ["latin"] });
+import type { Metadata } from 'next';
+import './globals.css';
 
 export const metadata: Metadata = {
-  title: "Red Monkey Entertainment",
-  description:
-    "Rent premium DJ setups, sound systems, stage lighting.",
+  title: 'Red Monkey Entertainment',
+  description: 'Pro DJ Gear & Event Equipment Rentals',
 };
 
 export default function RootLayout({
@@ -18,13 +12,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body
-        className={`${inter.className} bg-zinc-950 text-zinc-100 flex flex-col min-h-screen selection:bg-red-600 selection:text-white`}
-      >
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
+    <html lang="en" className="dark">
+      <body className="bg-zinc-950 text-white min-h-screen">
+        {children}
       </body>
     </html>
   );
