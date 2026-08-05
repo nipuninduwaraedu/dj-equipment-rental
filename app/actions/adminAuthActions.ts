@@ -1,8 +1,29 @@
 "use server";
 
-import { supabase } from "@/lib/supabase";
+import { cookies } from "next/headers";
+import { createServerClient } from "@supabase/ssr";
+import { revalidatePath } from "next/cache";
+
+const supabaseServer = () =>
+  createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll: async () => (await cookies()).getAll(),
+        setAll: async (cookiesToSet, _headers) => {
+          const requestCookies = await cookies();
+          cookiesToSet.forEach(({ name, value, options }) =>
+            requestCookies.set(name, value, options),
+          );
+        },
+      },
+    },
+  );
 
 export async function registerAdmin(formData: FormData) {
+  const supabase = supabaseServer();
+
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const fullName = formData.get("fullName") as string;
@@ -35,12 +56,19 @@ export async function registerAdmin(formData: FormData) {
     console.error("Profile creation error:", profileError);
   }
 
+  revalidatePath("/", "layout");
   return { success: true };
 }
 
 export async function loginAdmin(formData: FormData) {
+  const supabase = supabaseServer();
+
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+
+  if (!email || !password) {
+    return { success: false, message: "Email and password are required." };
+  }
 
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
@@ -51,18 +79,26 @@ export async function loginAdmin(formData: FormData) {
     return { success: false, message: error.message };
   }
 
+  revalidatePath("/", "layout");
+
   return { success: true, user: data.user };
 }
 
 export async function logoutAdmin() {
+  const supabase = supabaseServer();
   await supabase.auth.signOut();
+
+  revalidatePath("/", "layout");
   return { success: true };
 }
 
 export async function getAdminProfile() {
+  const supabase = supabaseServer();
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
   if (!user) return null;
 
   const { data: profile } = await supabase
@@ -80,9 +116,12 @@ export async function getAdminProfile() {
 }
 
 export async function updateAdminProfile(formData: FormData) {
+  const supabase = supabaseServer();
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
   if (!user) return { success: false, message: "Not authenticated" };
 
   const fullName = formData.get("fullName") as string;
@@ -110,7 +149,7 @@ export async function updateAdminProfile(formData: FormData) {
     }
   }
 
-  const updatePayload: any = { full_name: fullName };
+  const updatePayload: Record<string, any> = { full_name: fullName };
   if (avatarUrl) updatePayload.avatar_url = avatarUrl;
 
   const { error } = await supabase
@@ -119,5 +158,7 @@ export async function updateAdminProfile(formData: FormData) {
     .eq("id", user.id);
 
   if (error) return { success: false, message: error.message };
+
+  revalidatePath("/admin/dashboard");
   return { success: true, avatarUrl };
 }
