@@ -8,7 +8,7 @@ interface Equipment {
   name: string;
   category: string;
   price_per_day: number;
-  status: "Available" | "Rented Out" | "Maintenance";
+  status: "available" | "rented out" | "maintenance" | string;
 }
 
 export default function EditGearModal({
@@ -19,6 +19,7 @@ export default function EditGearModal({
   onClose: () => void;
 }) {
   const [loading, setLoading] = useState(false);
+  const defaultStatus = gear.status?.toLowerCase();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -88,12 +89,12 @@ export default function EditGearModal({
             </label>
             <select
               name="status"
-              defaultValue={gear.status}
+              defaultValue={defaultStatus}
               className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-red-500"
             >
-              <option value="Available">Available</option>
-              <option value="Rented Out">Rented Out</option>
-              <option value="Maintenance">Maintenance</option>
+              <option value="available">Available</option>
+              <option value="rented out">Rented Out</option>
+              <option value="maintenance">Maintenance</option>
             </select>
           </div>
 

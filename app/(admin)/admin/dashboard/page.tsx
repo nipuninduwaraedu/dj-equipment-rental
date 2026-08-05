@@ -27,7 +27,9 @@ import {
   Package,
   Layers,
   XCircle,
+  Edit3,
 } from "lucide-react";
+import EditGearModal from "@/components/EditGearModal";
 
 export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<
@@ -42,6 +44,7 @@ export default function AdminDashboardPage() {
 
   const [uploadingEq, setUploadingEq] = useState(false);
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [editingItem, setEditingItem] = useState<any | null>(null);
 
   useEffect(() => {
     loadDashboardData();
@@ -355,22 +358,42 @@ export default function AdminDashboardPage() {
                         <option value="maintenance">Maintenance</option>
                       </select>
                     </div>
-                    <button
-                      onClick={async () => {
-                        if (confirm("Delete equipment?")) {
-                          await deleteEquipment(item.id);
-                          loadDashboardData();
-                        }
-                      }}
-                      className="p-2 text-zinc-500 hover:text-rose-500 transition"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setEditingItem(item)}
+                        className="p-2 text-zinc-400 hover:text-red-500 transition"
+                        title="Edit equipment"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (confirm("Delete equipment?")) {
+                            await deleteEquipment(item.id);
+                            loadDashboardData();
+                          }
+                        }}
+                        className="p-2 text-zinc-500 hover:text-rose-500 transition"
+                        title="Delete equipment"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
           </div>
+        )}
+
+        {editingItem && (
+          <EditGearModal
+            gear={editingItem}
+            onClose={() => {
+              setEditingItem(null);
+              loadDashboardData();
+            }}
+          />
         )}
 
         {activeTab === "media" && (
